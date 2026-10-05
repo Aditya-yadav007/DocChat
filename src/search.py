@@ -58,12 +58,18 @@ class RAGSearch:
             return {"answer": "No relevant documents found.", "sources": []}
 
         prompt = (
-            f"You are a helpful AI assistant. Based on the following context, "
-            f"provide a clear and comprehensive answer to the user's question.\n\n"
-            f"Question: {query}\n\n"
+            f"You are a knowledgeable and clear AI assistant. Based on the provided context, "
+            f"answer the user's question in a clear, well-structured, and easily understandable format.\n\n"
+            f"Guidelines for your response:\n"
+            f"- Structure your explanation logically with clear headings (## or ###) and short paragraphs.\n"
+            f"- Use bullet points and bold text for key concepts to improve readability.\n"
+            f"- When explaining numbers, permissions, comparisons, or parameters, use clean Markdown tables.\n"
+            f"- Format code, commands, or technical syntax inside fenced code blocks with language tags (e.g. ```bash, ```python).\n"
+            f"- Include a brief summary or key takeaway section at the end if the topic is complex.\n"
+            f"- Base your answer strictly on the context provided. If the context does not contain enough information to fully answer, state clearly what is known and what is missing.\n\n"
+            f"Question:\n{query}\n\n"
             f"Context:\n{context}\n\n"
-            f"Provide a well-structured answer. If the context doesn't contain "
-            f"enough information to fully answer the question, say so."
+            f"Answer:"
         )
         response = self.llm.invoke([prompt])
         return {"answer": response.content, "sources": sources}

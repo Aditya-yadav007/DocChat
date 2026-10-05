@@ -233,18 +233,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const div = document.createElement('div');
     div.className = `msg ${role}`;
 
-    const avatar = role === 'user' ? '👤' : '🤖';
-    let sourcesHTML = '';
-    if (sources.length) {
-      sourcesHTML = `<div class="msg-sources">${sources.map(s => `<span class="source-tag">📄 ${s}</span>`).join('')}</div>`;
+    const avatar = role === 'user' ? '👤' : '🧠';
+    let bodyHTML = '';
+
+    if (role === 'user') {
+      bodyHTML = `<div class="msg-content">${escapeHTML(content)}</div>`;
+    } else {
+      const formattedHTML = formatMarkdown(content);
+      let footerHTML = '';
+
+      if (sources && sources.length > 0) {
+        footerHTML += `
+          <div class="msg-sources">
+            <span class="sources-title">📚 Sources:</span>
+            ${sources.map(s => `<span class="source-tag">📄 ${escapeHTML(s)}</span>`).join('')}
+          </div>`;
+      }
+
+      footerHTML += `
+        <div class="msg-actions">
+          <button class="action-btn copy-msg-btn" type="button" title="Copy answer to clipboard">
+            📋 Copy Answer
+          </button>
+        </div>`;
+
+      bodyHTML = `
+        <div class="msg-content">${formattedHTML}</div>
+        <div class="msg-footer">${footerHTML}</div>`;
     }
 
     div.innerHTML = `
       <div class="msg-avatar">${avatar}</div>
-      <div class="msg-body">
-        <div class="msg-content">${escapeHTML(content)}</div>
-        ${sourcesHTML}
-      </div>`;
+      <div class="msg-body">${bodyHTML}</div>`;
+
+    // Bind event handlers for assistant message interactions
+    if (role === 'assistant') {
+      const copyMsgBtn = div.querySelector('.copy-msg-btn');
+      if (copyMsgBtn) {
+        copyMsgBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(content).then(() => {
+            copyMsgBtn.innerHTML = '✓ Copied!';
+            setTimeout(() => { copyMsgBtn.innerHTML = '📋 Copy Answer'; }, 2000);
+          }).catch(() => {
+            copyMsgBtn.innerHTML = 'Failed';
+          });
+        });
+      }
+
+      div.querySelectorAll('.copy-code-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const wrapper = btn.closest('.code-block-wrapper');
+          const pre = wrapper ? wrapper.querySelector('pre') : null;
+          if (pre) {
+            navigator.clipboard.writeText(pre.innerText).then(() => {
+              btn.innerHTML = '✓ Copied!';
+              setTimeout(() => { btn.innerHTML = '📋 Copy'; }, 2000);
+            });
+          }
+        });
+      });
+    }
+
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
   }
@@ -283,6 +332,72 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Helpers ─────────────────────────────────────────────
+  function formatMarkdown(content) {
+    if (!content) return '';
+
+    let html = '';
+    if (window.marked && typeof window.marked.parse === 'function') {
+      try {
+        html = window.marked.parse(content, { gfm: true, breaks: true });
+      } catch (err) {
+        console.warn('Marked parse error, using fallback:', err);
+        html = fallbackMarkdown(content);
+      }
+    } else {
+      html = fallbackMarkdown(content);
+    }
+
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+
+    // Wrap tables in responsive wrapper
+    temp.querySelectorAll('table').forEach(table => {
+      if (!table.parentElement.classList.contains('table-wrapper')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-wrapper';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+      }
+    });
+
+    // Enhance code blocks with headers and copy buttons
+    temp.querySelectorAll('pre').forEach(pre => {
+      const code = pre.querySelector('code');
+      const langClass = code ? Array.from(code.classList).find(c => c.startsWith('language-')) : null;
+      const lang = langClass ? langClass.replace('language-', '') : 'code';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block-wrapper';
+
+      const header = document.createElement('div');
+      header.className = 'code-header';
+      header.innerHTML = `<span>${lang}</span><button class="copy-code-btn" type="button">📋 Copy</button>`;
+
+      pre.parentNode.insertBefore(wrapper, pre);
+      wrapper.appendChild(header);
+      wrapper.appendChild(pre);
+    });
+
+    return temp.innerHTML;
+  }
+
+  function fallbackMarkdown(text) {
+    let t = escapeHTML(text);
+    // Headings
+    t = t.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    t = t.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    t = t.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    // Bold / italic
+    t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    t = t.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Inline code
+    t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Line breaks
+    t = t.replace(/\n\n+/g, '</p><p>');
+    t = t.replace(/\n/g, '<br/>');
+    return `<p>${t}</p>`;
+  }
+
   function formatSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
