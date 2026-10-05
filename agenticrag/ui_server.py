@@ -6,6 +6,9 @@ import threading
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, PROJECT_ROOT)
 
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
@@ -44,9 +47,15 @@ def _allowed(filename):
 def _init_rag():
     """Create RAGSearch using shared model. Only loads FAISS index + LLM (fast)."""
     global rag_instance
+    load_dotenv(override=True)
     faiss_path = os.path.join(FAISS_DIR, 'faiss.index')
     if os.path.exists(faiss_path):
-        rag_instance = RAGSearch(persist_dir=FAISS_DIR, shared_model=SHARED_MODEL)
+        try:
+            rag_instance = RAGSearch(persist_dir=FAISS_DIR, shared_model=SHARED_MODEL)
+            print("[INFO] RAGSearch initialized successfully.")
+        except Exception as e:
+            print(f"[ERROR] Failed to initialize RAGSearch: {e}")
+            rag_instance = None
 
 
 def _incremental_index(file_paths):
@@ -231,12 +240,18 @@ def query():
         return jsonify({"status": "error", "message": "Missing query"}), 400
 
     if rag_instance is None:
-        return jsonify({"status": "error", "message": "No documents indexed yet. Please upload documents first."}), 400
+        _init_rag()
+        if rag_instance is None:
+            return jsonify({"status": "error", "message": "No documents indexed yet or LLM initialization failed. Please check your .env settings."}), 400
 
-    result = rag_instance.search_and_summarize(user_query, top_k=3)
-    chat_history.append({"role": "user", "content": user_query, "sources": []})
-    chat_history.append({"role": "assistant", "content": result["answer"], "sources": result["sources"]})
-    return jsonify({"status": "ok", "answer": result["answer"], "sources": result["sources"]})
+    try:
+        result = rag_instance.search_and_summarize(user_query, top_k=3)
+        chat_history.append({"role": "user", "content": user_query, "sources": []})
+        chat_history.append({"role": "assistant", "content": result["answer"], "sources": result["sources"]})
+        return jsonify({"status": "ok", "answer": result["answer"], "sources": result["sources"]})
+    except Exception as e:
+        print(f"[ERROR] Query processing failed: {e}")
+        return jsonify({"status": "error", "message": f"AI response failed: {str(e)}"}), 500
 
 
 @app.route('/history', methods=['GET'])

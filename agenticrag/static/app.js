@@ -207,17 +207,21 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
       });
-      const data = await resp.json();
+      let data = null;
+      try {
+        data = await resp.json();
+      } catch (_) {}
+
       removeTyping(typing);
 
-      if (resp.ok && data.status === 'ok') {
+      if (resp.ok && data && data.status === 'ok') {
         appendMessage('assistant', data.answer, data.sources || []);
       } else {
-        appendMessage('assistant', data.message || 'Error retrieving answer.');
+        appendMessage('assistant', (data && data.message) || `Error (${resp.status}): Failed to retrieve answer.`);
       }
     } catch (e) {
       removeTyping(typing);
-      appendMessage('assistant', 'Network error. Please try again.');
+      appendMessage('assistant', 'Network error. Please check your connection and verify the server is running.');
     }
 
     sendBtn.disabled = false;

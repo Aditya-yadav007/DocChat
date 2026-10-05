@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 from src.vectorstore import FaissVectorStore
 from langchain_groq import ChatGroq
 
-load_dotenv()
+load_dotenv(override=True)
 
 class RAGSearch:
     def __init__(self, persist_dir: str = "faiss_store", embedding_model: str = "all-MiniLM-L6-v2",
