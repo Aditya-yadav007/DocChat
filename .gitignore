@@ -1,0 +1,43 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables (contains API keys!)
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# FAISS index (large binary, rebuild from data)
+faiss_store/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Notebooks with hardcoded secrets
+notebook/
+typesense.ipynb
+agenticrag/1-agenticrag.ipynb
+
+# Uploaded files (user data)
+data/uploads/
+
+# Large data files
+books.jsonl
+
+# PDF documents (users add their own)
+data/pdf/
+
+# Chroma vector store (rebuilt at runtime)
+data/vector_store/

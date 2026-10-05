@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocChat AI — Ask Your Documents</title>
+  <meta name="description" content="Upload documents and chat with them using AI-powered retrieval-augmented generation." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- ─── Sidebar ─── -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo"><span class="logo-icon">🧠</span> DocChat AI</div>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Upload Section -->
+        <div class="section-label">📁 Documents</div>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" multiple
+            accept=".pdf,.txt,.csv,.xlsx,.docx,.json" hidden />
+          <div class="upload-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <p class="upload-label">Drag & drop files here</p>
+          <span class="upload-sub">or click to browse</span>
+          <span class="upload-hint">PDF · TXT · CSV · XLSX · DOCX · JSON</span>
+        </div>
+
+        <!-- Upload Progress -->
+        <div class="upload-progress" id="uploadProgress" style="display:none;">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <span class="progress-text" id="progressText">Uploading...</span>
+        </div>
+
+        <!-- Document List -->
+        <div class="doc-list" id="docList"></div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn-outline" id="newChatBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Chat
+        </button>
+        <button class="btn-icon" id="themeToggle" title="Toggle theme">🌙</button>
+      </div>
+    </aside>
+
+    <!-- ─── Mobile sidebar toggle ─── -->
+    <button class="mobile-toggle" id="mobileToggle">☰</button>
+
+    <!-- ─── Chat Area ─── -->
+    <main class="chat-area">
+      <div class="chat-header">
+        <h1>DocChat AI</h1>
+        <div class="status-badge" id="statusBadge">
+          <span class="status-dot"></span>
+          <span id="statusText">Ready</span>
+        </div>
+      </div>
+
+      <div class="messages" id="messages">
+        <!-- Welcome Screen -->
+        <div class="welcome" id="welcomeScreen">
+          <div class="welcome-glow"></div>
+          <div class="welcome-icon">🤖</div>
+          <h2>Welcome to DocChat AI</h2>
+          <p>Upload your documents and start asking questions about them.</p>
+          <div class="welcome-cards">
+            <div class="wcard"><span>📄</span> Upload Documents</div>
+            <div class="wcard"><span>💬</span> Ask Questions</div>
+            <div class="wcard"><span>🔍</span> Get AI Answers</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-wrapper">
+          <input type="text" id="queryInput"
+            placeholder="Ask a question about your documents..." autocomplete="off" />
+          <button class="send-btn" id="sendBtn" title="Send">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <p class="input-hint">Press Enter to send · Powered by Groq + FAISS</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+Retrieval-Augmented Generation (RAG) is an AI framework that grounds Large Language Models (LLMs) on proprietary or external data. Instead of relying solely on pre-trained knowledge, RAG dynamically retrieves relevant document chunks from a custom database and feeds them to the LLM, dramatically reducing hallucinations and improving factual accuracy. 
